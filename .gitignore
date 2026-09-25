@@ -1,0 +1,12 @@
+moulinette.zip
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Secrets: API keys must never be committed (see subject VI.3)
+.env
+
+# Generated outputs (subject VIII). Curated benchmark solution.json files go in benchmarks/
+cache/
+evaluations/
