@@ -1,118 +1,118 @@
 # PROGRESS — Agent Smith
 
-Трекер стадий проекта. Легенда: ✅ готово · 🟡 частично · ⬜ не начато
+Stage tracker for the project. Legend: ✅ done · 🟡 partial · ⬜ not started
 
-Сейчас в репозитории: полный скелет модулей (сигнатуры + докстринги со ссылками
-на разделы сабжекта), работающие Pydantic-модели и базовые тесты. Вся логика —
+Current state: a complete skeleton (signatures + docstrings referencing the subject
+sections), working Pydantic models, and a few smoke tests. All logic is still
 `raise NotImplementedError`.
 
 ---
 
-## Общая стадия
+## Overall stage
 
-**Стадия 1 из 5: каркас.** Дальше — сначала песочница, потом MBPP-агент end-to-end,
-потом SWE-bench, потом бенчмарк и документы.
+**Stage 1 of 5: skeleton.** Next up: the sandbox first, then MBPP end-to-end, then
+SWE-bench, then the benchmark and the write-ups.
 
-| # | Стадия | Статус |
-|---|--------|--------|
-| 1 | Каркас: модели, конфиг, лимиты, структура пакетов | ✅ |
-| 2 | Песочница + MCP + CLI (`uv run sandbox`) | ⬜ |
-| 3 | MBPP-агент end-to-end (проходит moulinette) | ⬜ |
-| 4 | SWE-bench-агент end-to-end (Docker + tools) | ⬜ |
-| 5 | Бенчмарк моделей, README, финальная полировка | ⬜ |
+| # | Stage | Status |
+|---|-------|--------|
+| 1 | Skeleton: models, config, limits, package layout | ✅ |
+| 2 | Sandbox + MCP + CLI (`uv run sandbox`) | ⬜ |
+| 3 | MBPP agent end-to-end (passes the moulinette) | ⬜ |
+| 4 | SWE-bench agent end-to-end (Docker + tools) | ⬜ |
+| 5 | Model benchmark, README, final polish | ⬜ |
 
 ---
 
-## Модули
+## Modules
 
-### Основа
+### Foundation
 
-| Модуль | Что делает | Статус |
-|--------|-----------|--------|
+| Module | What it does | Status |
+|--------|--------------|--------|
 | `models.py` | `MBPPTaskInput`, `SWEBenchTaskInput`, `StepMetrics`, `SolutionOutput`, `SandboxConfig` | ✅ |
-| `agent_smith/config.py` | загрузка `sandbox_template.json` в модель | ✅ |
-| `agent_smith/agent/limits.py` | лимиты MBPP / SWE-bench из сабжекта | ✅ |
-| `tests/test_models.py` | смоук-тесты моделей и лимитов | ✅ |
+| `agent_smith/config.py` | loads `sandbox_template.json` into the model | ✅ |
+| `agent_smith/agent/limits.py` | MBPP / SWE-bench limits from the subject | ✅ |
+| `tests/test_models.py` | smoke tests for models and limits | ✅ |
 
-### Песочница (стадия 2, самая важная — отдельный exam-скрипт)
+### Sandbox (stage 2 — most important, it has its own exam script)
 
-| Модуль | Что делает | Статус |
-|--------|-----------|--------|
-| `sandbox/restrictions.py` | безопасные builtins, import-hook по allowlist, проверка путей, блок сети, лимит памяти | ⬜ |
-| `sandbox/executor.py` | `Sandbox.execute()` — отдельный процесс, persistent state, таймаут, `final_answer`, инъекция MCP-тулов | ⬜ |
+| Module | What it does | Status |
+|--------|--------------|--------|
+| `sandbox/restrictions.py` | safe builtins, allowlist import hook, path checks, network block, memory limit | ⬜ |
+| `sandbox/executor.py` | `Sandbox.execute()` — separate process, persistent state, timeout, `final_answer`, MCP tool injection | ⬜ |
 | `sandbox/cli.py` | REPL `uv run sandbox [config.json] [--mcp-stdio / --mcp-server]` | ⬜ |
-| `tests/test_sandbox_security.py` | 7 тестов зеркалят `exam_sandbox.sh` (сейчас все `skip`) | ⬜ |
+| `tests/test_sandbox_security.py` | 7 tests mirroring `exam_sandbox.sh` (all `skip` right now) | ⬜ |
 
-Требования: только stdlib, никакого RestrictedPython. `KeyboardInterrupt` / `SystemExit`
-не глотать. `final_answer` — не MCP-тул, живёт в самой песочнице всегда.
+Constraints: stdlib only, no RestrictedPython. `KeyboardInterrupt` / `SystemExit` must not
+be swallowed. `final_answer` is not an MCP tool — it always lives in the sandbox itself.
 
 ### MCP
 
-| Модуль | Что делает | Статус |
-|--------|-----------|--------|
-| `mcp_client/client.py` | клиент: stdio + streamable HTTP, динамический discovery тулов/ресурсов/промптов | ⬜ |
-| `mcp_client/manual.py` | генерация мануала по схемам тулов (для системного промпта) | ⬜ |
-| `mcp_tools_mbpp.py` | MCP-сервер: `run_tests(code, test_list)` | ⬜ |
-| `mcp_tools_swebench.py` | MCP-сервер: 9 обязательных тулов (fs / search / exec), путь из `TESTBED_PATH` | ⬜ |
+| Module | What it does | Status |
+|--------|--------------|--------|
+| `mcp_client/client.py` | client: stdio + streamable HTTP, dynamic discovery of tools/resources/prompts | ⬜ |
+| `mcp_client/manual.py` | manual generated from tool schemas (fed into the system prompt) | ⬜ |
+| `mcp_tools_mbpp.py` | MCP server: `run_tests(code, test_list)` | ⬜ |
+| `mcp_tools_swebench.py` | MCP server: the 9 mandatory tools (fs / search / exec), repo path from `TESTBED_PATH` | ⬜ |
 
-Система тестируется с **неизвестным** MCP-сервером → ничего про тулы не хардкодить.
+The system is tested against an **unknown** MCP server — nothing about tools may be hardcoded.
 
-### Ядро агента
+### Agent core
 
-| Модуль | Что делает | Статус |
-|--------|-----------|--------|
-| `extraction/extractor.py` | парсинг ответа LLM: ```python-блок, XML, Hermes JSON, ReAct → Python-вызовы | ⬜ |
-| `prompts/system.py` | системный промпт: роль, слоты Thought/Code/Observation, мануал, примеры | ⬜ |
-| `agent/loop.py` | цикл Thought → Code → Observation, стоп-условия, явный фидбек об ошибках | ⬜ |
-| `agent/metrics.py` | сбор `StepMetrics`, сборка `SolutionOutput` | ⬜ |
+| Module | What it does | Status |
+|--------|--------------|--------|
+| `extraction/extractor.py` | parse the LLM response: ```python block, XML, Hermes JSON, ReAct → Python calls | ⬜ |
+| `prompts/system.py` | system prompt: role, Thought/Code/Observation slots, manual, examples | ⬜ |
+| `agent/loop.py` | Thought → Code → Observation loop, stop conditions, explicit feedback on every failure | ⬜ |
+| `agent/metrics.py` | collect `StepMetrics`, build `SolutionOutput` | ⬜ |
 
-### LLM-слой
+### LLM layer
 
-| Модуль | Что делает | Статус |
-|--------|-----------|--------|
-| `llm/base.py` | интерфейс `LLMClient` / `LLMResponse` | ✅ (только контракт) |
-| `llm/key_pool.py` | несколько ключей на провайдера, ротация при 429/квоте | ⬜ |
-| `llm/openai_compatible.py` | клиент `/chat/completions`, ретраи, stop-последовательности, учёт токенов | ⬜ |
+| Module | What it does | Status |
+|--------|--------------|--------|
+| `llm/base.py` | `LLMClient` / `LLMResponse` interface | ✅ (contract only) |
+| `llm/key_pool.py` | several keys per provider, rotation on 429 / quota exhaustion | ⬜ |
+| `llm/openai_compatible.py` | `/chat/completions` client, retries, stop sequences, token accounting | ⬜ |
 
-Ключи — только из env (`OPENROUTER_API_KEY=key1,key2`), хардкод = провал ревью.
+Keys come from the environment only (`OPENROUTER_API_KEY=key1,key2`); a hardcoded key fails the review.
 
-### CLI агентов
+### Agent CLIs
 
-| Модуль | Что делает | Статус |
-|--------|-----------|--------|
-| `agent_mbpp/__main__.py` | аргументы разобраны, сборка пайплайна — нет | 🟡 |
-| `agent_swebench/__main__.py` | то же + pull образа, контейнер, гарантированный cleanup по SIGTERM | 🟡 |
-| `pyproject.toml` | нет `[project.scripts]` для `sandbox`, нет зависимостей (mcp, http-клиент, dotenv, docker) | 🟡 |
+| Module | What it does | Status |
+|--------|--------------|--------|
+| `agent_mbpp/__main__.py` | args are parsed, pipeline wiring is missing | 🟡 |
+| `agent_swebench/__main__.py` | same, plus image pull, container, guaranteed cleanup on SIGTERM | 🟡 |
+| `pyproject.toml` | no `[project.scripts]` entry for `sandbox`, no dependencies (mcp, http client, dotenv, docker) | 🟡 |
 
-### Документы и отчёты
+### Documents and reports
 
-| Артефакт | Статус |
+| Artifact | Status |
 |----------|--------|
-| `README.md` (архитектура, цикл агента, дизайн песочницы, тулы, результаты; первая строка — курсив про 42) | ⬜ пустой |
-| `BENCHMARK_REPORT.md` (≥5 моделей × ≥2 провайдера × ≥3 SWE-bench задачи + ablation + выводы) | ⬜ |
-| `solution.json` файлы, подтверждающие бенчмарк | ⬜ |
+| `README.md` (architecture, agent loop, sandbox design, tools, results; first line italic, 42 curriculum) | ⬜ empty |
+| `BENCHMARK_REPORT.md` (≥5 models × ≥2 providers × ≥3 SWE-bench tasks + ablation + conclusions) | ⬜ |
+| `solution.json` files backing the benchmark | ⬜ |
 
 ---
 
-## Порядок работ
+## Order of work
 
-1. **Песочница без MCP** — restrictions → executor → снять `skip` с тестов безопасности.
-2. **MCP** — клиент (stdio), `mcp_tools_mbpp.py`, инъекция тулов в песочницу, мануал, затем HTTP-транспорт и `uv run sandbox` REPL.
-3. **LLM-слой** — key pool → openai-совместимый клиент со stop-последовательностями и подсчётом токенов.
-4. **MBPP end-to-end** — extractor → промпт → loop → metrics → `agent_mbpp`. Цель: `moulinette_eval validate mbpp` зелёный на одной задаче, потом 4/5.
-5. **SWE-bench** — 9 тулов + Docker-обвязка + cleanup, отладка на `sympy__sympy-14711`, `sympy__sympy-13480`, `pydata__xarray-4629`. Цель: 2/3.
-6. **Бенчмарк и документы** — прогнать модели, собрать отчёт, дописать README.
+1. **Sandbox without MCP** — restrictions → executor → un-skip the security tests.
+2. **MCP** — client (stdio), `mcp_tools_mbpp.py`, tool injection into the sandbox, the manual, then the HTTP transport and the `uv run sandbox` REPL.
+3. **LLM layer** — key pool → OpenAI-compatible client with stop sequences and token counting.
+4. **MBPP end-to-end** — extractor → prompt → loop → metrics → `agent_mbpp`. Target: `moulinette_eval validate mbpp` green on one task, then 4/5.
+5. **SWE-bench** — the 9 tools + Docker plumbing + cleanup, debugged on `sympy__sympy-14711`, `sympy__sympy-13480`, `pydata__xarray-4629`. Target: 2/3.
+6. **Benchmark and documents** — run the models, write the report, fill in the README.
 
-Совет из сабжекта: сначала доказать, что всё работает на самой простой задаче
-**без** лимитов токенов/итераций, и только потом закручивать ограничения.
+Advice from the subject: first prove the whole thing works on the easiest task **without**
+token/iteration limits, and only then tighten the constraints.
 
 ---
 
-## Критерии сдачи
+## Pass criteria
 
-- MBPP 4/5, SWE-bench 2/3 (ретраев на экзамене нет)
-- Все лимиты соблюдены: MBPP 10 итераций / 6k in / 1.5k out / 120 c · SWE-bench 30 / 300k / 10k / 900 c
-- `exam_sandbox.sh` — все 7 тестов
-- Обязательные тулы проходят независимые тесты
-- Никаких ключей в коде, только free tier
-- На защите — быстрая правка агента вживую (2–5 мин) и перезапуск на MBPP
+- MBPP 4/5, SWE-bench 2/3 (no retries during the exam)
+- All limits respected: MBPP 10 iterations / 6k in / 1.5k out / 120 s · SWE-bench 30 / 300k / 10k / 900 s
+- `exam_sandbox.sh` — all 7 tests
+- Mandatory tools pass their independent tests
+- No keys in the source, free tier only
+- At the defense: a small live change to the agent (2–5 min) and a re-run on an MBPP task
