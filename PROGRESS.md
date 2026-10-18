@@ -16,7 +16,7 @@ SWE-bench, then the benchmark and the write-ups.
 | # | Stage | Status |
 |---|-------|--------|
 | 1 | Skeleton: models, config, limits, package layout | ✅ |
-| 2 | Sandbox + MCP + CLI (`uv run sandbox`) | ⬜ |
+| 2 | Sandbox + MCP + CLI (`uv run sandbox`) | 🟡 sandbox done, MCP pending |
 | 3 | MBPP agent end-to-end (passes the moulinette) | ⬜ |
 | 4 | SWE-bench agent end-to-end (Docker + tools) | ⬜ |
 | 5 | Model benchmark, README, final polish | ⬜ |
@@ -38,10 +38,11 @@ SWE-bench, then the benchmark and the write-ups.
 
 | Module | What it does | Status |
 |--------|--------------|--------|
-| `sandbox/restrictions.py` | safe builtins, allowlist import hook, path checks, network block, memory limit | ⬜ |
-| `sandbox/executor.py` | `Sandbox.execute()` — separate process, persistent state, timeout, `final_answer`, MCP tool injection | ⬜ |
-| `sandbox/cli.py` | REPL `uv run sandbox [config.json] [--mcp-stdio / --mcp-server]` | ⬜ |
-| `tests/test_sandbox_security.py` | 7 tests mirroring `exam_sandbox.sh` (all `skip` right now) | ⬜ |
+| `sandbox/restrictions.py` | safe builtins, allowlist import hook, AST check, path checks, network block, memory limit | ✅ |
+| `sandbox/worker.py` | the isolated process: persistent namespace, streamed output, tool proxies, `final_answer` | ✅ |
+| `sandbox/executor.py` | `Sandbox.execute()` — separate process, persistent state, timeout, RSS watchdog, tool bridge | ✅ |
+| `sandbox/cli.py` | REPL `uv run sandbox [config.json]` works; `--mcp-stdio / --mcp-server` wait for the MCP client | 🟡 |
+| `tests/test_sandbox_security.py` | 7 tests mirroring `exam_sandbox.sh` + state / final_answer / SystemExit (MCP test uses a fake tool until the client exists) | ✅ |
 
 Constraints: stdlib only, no RestrictedPython. `KeyboardInterrupt` / `SystemExit` must not
 be swallowed. `final_answer` is not an MCP tool — it always lives in the sandbox itself.
@@ -82,7 +83,7 @@ Keys come from the environment only (`OPENROUTER_API_KEY=key1,key2`); a hardcode
 |--------|--------------|--------|
 | `agent_mbpp/__main__.py` | args are parsed, pipeline wiring is missing | 🟡 |
 | `agent_swebench/__main__.py` | same, plus image pull, container, guaranteed cleanup on SIGTERM | 🟡 |
-| `pyproject.toml` | no `[project.scripts]` entry for `sandbox`, no dependencies (mcp, http client, dotenv, docker) | 🟡 |
+| `pyproject.toml` | `sandbox` script and build backend added; still no dependencies (mcp, http client, dotenv, docker) | 🟡 |
 
 ### Documents and reports
 
