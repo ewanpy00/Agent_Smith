@@ -16,7 +16,7 @@ SWE-bench, then the benchmark and the write-ups.
 | # | Stage | Status |
 |---|-------|--------|
 | 1 | Skeleton: models, config, limits, package layout | ✅ |
-| 2 | Sandbox + MCP + CLI (`uv run sandbox`) | 🟡 sandbox done, MCP pending |
+| 2 | Sandbox + MCP + CLI (`uv run sandbox`) | 🟡 sandbox + MCP client/server done, manual pending |
 | 3 | MBPP agent end-to-end (passes the moulinette) | ⬜ |
 | 4 | SWE-bench agent end-to-end (Docker + tools) | ⬜ |
 | 5 | Model benchmark, README, final polish | ⬜ |
@@ -41,7 +41,7 @@ SWE-bench, then the benchmark and the write-ups.
 | `sandbox/restrictions.py` | safe builtins, allowlist import hook, AST check, path checks, network block, memory limit | ✅ |
 | `sandbox/worker.py` | the isolated process: persistent namespace, streamed output, tool proxies, `final_answer` | ✅ |
 | `sandbox/executor.py` | `Sandbox.execute()` — separate process, persistent state, timeout, RSS watchdog, tool bridge | ✅ |
-| `sandbox/cli.py` | REPL `uv run sandbox [config.json]` works; `--mcp-stdio / --mcp-server` wait for the MCP client | 🟡 |
+| `sandbox/cli.py` | REPL `uv run sandbox [config.json]` works; `--mcp-stdio / --mcp-server` wired to the MCP client | ✅ |
 | `tests/test_sandbox_security.py` | 7 tests mirroring `exam_sandbox.sh` + state / final_answer / SystemExit (MCP test uses a fake tool until the client exists) | ✅ |
 
 Constraints: stdlib only, no RestrictedPython. `KeyboardInterrupt` / `SystemExit` must not
@@ -51,9 +51,10 @@ be swallowed. `final_answer` is not an MCP tool — it always lives in the sandb
 
 | Module | What it does | Status |
 |--------|--------------|--------|
-| `mcp_client/client.py` | client: stdio + streamable HTTP, dynamic discovery of tools/resources/prompts | ⬜ |
+| `mcp_client/client.py` | client: stdio + streamable HTTP, dynamic discovery of tools/resources/prompts | ✅ |
 | `mcp_client/manual.py` | manual generated from tool schemas (fed into the system prompt) | ⬜ |
-| `mcp_tools_mbpp.py` | MCP server: `run_tests(code, test_list)` | ⬜ |
+| `mcp_tools_mbpp.py` | MCP server: `run_tests(code, test_list)` (stdio and `--http`) | ✅ |
+| `tests/test_mcp_client.py` | client against the real server over stdio + HTTP, and from inside the sandbox | ✅ |
 | `mcp_tools_swebench.py` | MCP server: the 9 mandatory tools (fs / search / exec), repo path from `TESTBED_PATH` | ⬜ |
 
 The system is tested against an **unknown** MCP server — nothing about tools may be hardcoded.

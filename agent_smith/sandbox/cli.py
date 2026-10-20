@@ -13,6 +13,7 @@ import codeop
 import sys
 
 from agent_smith.config import load_sandbox_config
+from agent_smith.mcp_client.client import MCPClient
 from agent_smith.sandbox.executor import ExecutionResult, Sandbox
 
 
@@ -58,10 +59,21 @@ def main() -> None:
     parser.add_argument("--mcp-server", metavar="URL", help="MCP server reachable over streamable HTTP")
     args = parser.parse_args()
 
-    if args.mcp_stdio or args.mcp_server:
-        parser.error("MCP support is not implemented yet (agent_smith/mcp_client)")
+    if args.mcp_stdio and args.mcp_server:
+        parser.error("use either --mcp-stdio or --mcp-server, not both")
 
-    sandbox = Sandbox(load_sandbox_config(args.config))
+    client = None
+    tools = {}
+    if args.mcp_stdio or args.mcp_server:
+        client = MCPClient(stdio_command=args.mcp_stdio, server_url=args.mcp_server)
+        try:
+            client.connect()
+        except Exception as exc:
+            parser.exit(1, f"sandbox: cannot connect to the MCP server: {exc}\n")
+        tools = client.as_python_functions()
+        print(f"[mcp] tools available: {', '.join(tools) or 'none'}")
+
+    sandbox = Sandbox(load_sandbox_config(args.config), tools=tools)
     try:
         while True:
             entry = _read_entry()
@@ -78,6 +90,8 @@ def main() -> None:
         print()
     finally:
         sandbox.close()
+        if client is not None:
+            client.close()
 
 
 if __name__ == "__main__":
