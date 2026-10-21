@@ -68,3 +68,20 @@ def test_tools_inside_sandbox():
 def test_bad_arguments_to_constructor():
     with pytest.raises(ValueError):
         MCPClient()
+
+
+def test_manual_reflects_server_tools():
+    from agent_smith.mcp_client.manual import build_sandbox_manual
+
+    with MCPClient(stdio_command=f"{sys.executable} {SERVER}") as client:
+        manual = build_sandbox_manual(client.list_tools())
+    assert "### run_tests(code: str, test_list: list[str])" in manual
+    assert "final_answer(answer)" in manual
+
+    other = [{"name": "grep", "description": "Search files.",
+              "input_schema": {"type": "object", "required": ["pattern"],
+                               "properties": {"pattern": {"type": "string", "description": "regex"},
+                                              "limit": {"type": "integer", "default": 10}}}}]
+    text = build_sandbox_manual(other)
+    assert "### grep(pattern: str, limit: int = 10)" in text and "run_tests" not in text
+    assert "No external tools" in build_sandbox_manual([])

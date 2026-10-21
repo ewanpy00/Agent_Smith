@@ -16,7 +16,7 @@ SWE-bench, then the benchmark and the write-ups.
 | # | Stage | Status |
 |---|-------|--------|
 | 1 | Skeleton: models, config, limits, package layout | ✅ |
-| 2 | Sandbox + MCP + CLI (`uv run sandbox`) | 🟡 sandbox + MCP client/server done, manual pending |
+| 2 | Sandbox + MCP + CLI (`uv run sandbox`) | 🟡 sandbox, MCP client/server, manual done |
 | 3 | MBPP agent end-to-end (passes the moulinette) | ⬜ |
 | 4 | SWE-bench agent end-to-end (Docker + tools) | ⬜ |
 | 5 | Model benchmark, README, final polish | ⬜ |
@@ -52,7 +52,7 @@ be swallowed. `final_answer` is not an MCP tool — it always lives in the sandb
 | Module | What it does | Status |
 |--------|--------------|--------|
 | `mcp_client/client.py` | client: stdio + streamable HTTP, dynamic discovery of tools/resources/prompts | ✅ |
-| `mcp_client/manual.py` | manual generated from tool schemas (fed into the system prompt) | ⬜ |
+| `mcp_client/manual.py` | manual generated from tool schemas (fed into the system prompt) | ✅ |
 | `mcp_tools_mbpp.py` | MCP server: `run_tests(code, test_list)` (stdio and `--http`) | ✅ |
 | `tests/test_mcp_client.py` | client against the real server over stdio + HTTP, and from inside the sandbox | ✅ |
 | `mcp_tools_swebench.py` | MCP server: the 9 mandatory tools (fs / search / exec), repo path from `TESTBED_PATH` | ⬜ |
