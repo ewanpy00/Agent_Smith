@@ -10,13 +10,13 @@ sections), working Pydantic models, and a few smoke tests. All logic is still
 
 ## Overall stage
 
-**Stage 1 of 5: skeleton.** Next up: the sandbox first, then MBPP end-to-end, then
-SWE-bench, then the benchmark and the write-ups.
+**Stages 1–2 of 5 done.** Next up: the LLM layer and MBPP end-to-end, then the
+SWE-bench agent (Docker), then the benchmark and the write-ups.
 
 | # | Stage | Status |
 |---|-------|--------|
 | 1 | Skeleton: models, config, limits, package layout | ✅ |
-| 2 | Sandbox + MCP + CLI (`uv run sandbox`) | 🟡 sandbox, MCP client/server, manual done |
+| 2 | Sandbox + MCP + CLI (`uv run sandbox`) | ✅ |
 | 3 | MBPP agent end-to-end (passes the moulinette) | ⬜ |
 | 4 | SWE-bench agent end-to-end (Docker + tools) | ⬜ |
 | 5 | Model benchmark, README, final polish | ⬜ |
@@ -55,7 +55,8 @@ be swallowed. `final_answer` is not an MCP tool — it always lives in the sandb
 | `mcp_client/manual.py` | manual generated from tool schemas (fed into the system prompt) | ✅ |
 | `mcp_tools_mbpp.py` | MCP server: `run_tests(code, test_list)` (stdio and `--http`) | ✅ |
 | `tests/test_mcp_client.py` | client against the real server over stdio + HTTP, and from inside the sandbox | ✅ |
-| `mcp_tools_swebench.py` | MCP server: the 9 mandatory tools (fs / search / exec), repo path from `TESTBED_PATH` | ⬜ |
+| `mcp_tools_swebench.py` | MCP server: the 9 mandatory tools (fs / search / exec), repo path from `TESTBED_PATH`, eval script from `EVAL_SCRIPT_PATH` / `EVAL_SCRIPT` / `/eval.sh` | ✅ |
+| `tests/test_mcp_swebench.py` | every tool on a throwaway git repo + the server over MCP stdio | ✅ |
 
 The system is tested against an **unknown** MCP server — nothing about tools may be hardcoded.
 
